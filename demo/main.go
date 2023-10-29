@@ -1,12 +1,3 @@
-# waveshare-usb-can-a-go
-
-Go binding for waveshare USB-CAN-A.
-
-[Waveshare USB-CAN-A Help](https://www.waveshare.net/wiki/USB-CAN-A)
-
-[Demo](./demo/main.go):
-
-```go
 package main
 
 import (
@@ -54,4 +45,3 @@ func Read(ucan *wsucana.UsbCanA) {
 		ucan.Close()
 	}
 }
-```

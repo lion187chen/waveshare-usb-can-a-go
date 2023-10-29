@@ -66,15 +66,15 @@ const (
 	FRAME_DATA_DLC_MASK     byte = 0x0F
 )
 
-func (my *UsbCanA) Open(port string) error {
+func (my *UsbCanA) Open(port string, channelSize int) error {
 	my.aserial = new(aserial).init(my)
 	e := my.aserial.open(port)
 	if e != nil {
 		my.aserial = nil
 		return e
 	}
-	my.in = make(chan canframe.Frame, 16)
-	my.out = make(chan []byte, 16)
+	my.in = make(chan canframe.Frame, channelSize)
+	my.out = make(chan []byte, channelSize)
 	my.aserial.startRead(my.in, my.out)
 	return nil
 }
