@@ -107,7 +107,7 @@ func (my *UsbCanA) Config(biterate BiterateType, framet CanFrameType, mode WorkM
 	time.Sleep(100 * time.Millisecond)
 }
 
-func (my *UsbCanA) SendFrame(frame *canframe.Frame) {
+func (my *UsbCanA) WriteFrame(frame *canframe.Frame) {
 	my.out <- my.Marshal(frame)
 }
 
@@ -175,6 +175,6 @@ func (my *UsbCanA) Unmarshal(bs []byte) *canframe.Frame {
 	return &frame
 }
 
-func (my *UsbCanA) GetPollChannel() <-chan canframe.Frame {
+func (my *UsbCanA) GetReadChannel() <-chan canframe.Frame {
 	return my.in
 }

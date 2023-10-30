@@ -23,15 +23,15 @@ func main() {
 
 	go Read(ucan)
 
-	var sendFrame canframe.Frame = canframe.Frame{
+	var aFrame canframe.Frame = canframe.Frame{
 		ID:         0x20,
 		Data:       []byte{0x01, 0x02, 0x03, 0x4, 0x05, 0x06, 0x07, 0x08},
 		IsExtended: true,
 		IsRemote:   false,
 		IsError:    false,
 	}
-	// SendFrame() will packa CAN frame to serial packate and send it to serial tx goroutine.
-	ucan.SendFrame(&sendFrame)
+	// WriteFrame() will packa CAN frame to serial packate and send it to serial tx goroutine.
+	ucan.WriteFrame(&aFrame)
 
 	// Wait the serial tx and rx goroutines exited.
 	ucan.WaitClose()
@@ -39,7 +39,7 @@ func main() {
 
 func Read(ucan *wsucana.UsbCanA) {
 	for {
-		rframe := <-ucan.GetPollChannel()
+		rframe := <-ucan.GetReadChannel()
 		fmt.Println(rframe)
 		// Close() will stop serial tx and rx goroutines.
 		ucan.Close()
