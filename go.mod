@@ -1,10 +1,10 @@
 module github.com/lion187chen/waveshare-usb-can-a-go
 
-go 1.21.3
+go 1.20
 
 require (
 	github.com/albenik/go-serial v1.2.0
-	github.com/lion187chen/socketcan-go v1.0.3
+	github.com/lion187chen/socketcan-go v1.0.4
 )
 
 require (
