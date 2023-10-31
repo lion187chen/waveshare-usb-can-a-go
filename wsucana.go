@@ -85,6 +85,14 @@ func (my *UsbCanA) Close() {
 		my.aserial.WaitClose()
 		my.aserial = nil
 	}
+	if my.in != nil {
+		close(my.in)
+		my.in = nil
+	}
+	if my.out != nil {
+		close(my.out)
+		my.out = nil
+	}
 }
 
 func (my *UsbCanA) Config(biterate BiterateType, framet CanFrameType, mode WorkModeType, repeat RepeatType) {
