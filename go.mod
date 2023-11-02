@@ -4,7 +4,7 @@ go 1.21.3
 
 require (
 	github.com/albenik/go-serial v1.2.0
-	github.com/lion187chen/socketcan-go v1.0.4
+	github.com/lion187chen/socketcan-go v1.0.5
 )
 
 require (
