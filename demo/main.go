@@ -38,10 +38,8 @@ func main() {
 }
 
 func Read(ucan *wsucana.UsbCanA) {
-	for {
-		rframe := <-ucan.GetReadChannel()
-		fmt.Println(rframe)
-		// Close() will stop serial tx and rx goroutines.
-		ucan.Close()
-	}
+	rframe := <-ucan.GetReadChannel()
+	fmt.Println(rframe)
+	// Close() will stop serial tx and rx goroutines.
+	ucan.Close()
 }
