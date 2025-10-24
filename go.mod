@@ -3,11 +3,14 @@ module github.com/lion187chen/waveshare-usb-can-a-go
 go 1.21.3
 
 require (
+	github.com/albenik/go-serial v1.2.0
 	github.com/lion187chen/socketcan-go v1.0.5
-	go.bug.st/serial v1.6.4
 )
 
 require (
 	github.com/creack/goselect v0.1.2 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
+	go.uber.org/atomic v1.4.0 // indirect
+	go.uber.org/multierr v1.1.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 )

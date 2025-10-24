@@ -3,10 +3,9 @@ package wsucana
 import (
 	"fmt"
 	"sync"
-	"time"
 
+	serial "github.com/albenik/go-serial"
 	"github.com/lion187chen/socketcan-go/canframe"
-	serial "go.bug.st/serial"
 )
 
 type aserial struct {
@@ -46,7 +45,7 @@ func (my *aserial) open(port string) error {
 		return e
 	}
 	// Blocking mode.
-	my.Port.SetReadTimeout(100 * time.Millisecond)
+	my.Port.SetReadTimeout(100)
 
 	return nil
 }
