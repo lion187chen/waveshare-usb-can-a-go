@@ -127,8 +127,12 @@ ASerial_ReadAll_Main_Loop:
 									println("in queue is full.")
 								}
 								ob = ob[fl:]
+								i = 0
 							} else {
-								continue ASerial_ReadAll_Main_Loop
+								// 不是有效的帧头，抛弃。
+								ob = ob[i+1:]
+								i = 0
+								continue
 							}
 						} else {
 							continue ASerial_ReadAll_Main_Loop
