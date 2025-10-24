@@ -111,7 +111,7 @@ ASerial_ReadAll_Main_Loop:
 			}
 
 			ob = append(ob, rb[:s]...)
-			for i := 0; i < len(ob); i++ {
+			for i := 0; i < len(ob); {
 
 				if ob[i] == FRAME_HEAD {
 					ob = ob[i:]
@@ -141,6 +141,8 @@ ASerial_ReadAll_Main_Loop:
 					} else {
 						continue ASerial_ReadAll_Main_Loop
 					}
+				} else {
+					i++
 				}
 			}
 		}
