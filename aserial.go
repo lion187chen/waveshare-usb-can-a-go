@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	serial "github.com/albenik/go-serial"
 	"github.com/lion187chen/socketcan-go/canframe"
+	serial "go.bug.st/serial"
 )
 
 type aserial struct {
