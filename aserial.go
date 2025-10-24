@@ -3,6 +3,7 @@ package wsucana
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/lion187chen/socketcan-go/canframe"
 	serial "go.bug.st/serial"
@@ -45,7 +46,7 @@ func (my *aserial) open(port string) error {
 		return e
 	}
 	// Blocking mode.
-	my.Port.SetReadTimeout(-1)
+	my.Port.SetReadTimeout(100 * time.Millisecond)
 
 	return nil
 }
