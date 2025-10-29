@@ -41,7 +41,7 @@ func (my *aserial) open(port string) error {
 		return e
 	}
 	// Blocking mode.
-	my.Port.SetReadTimeout(100)
+	my.Port.SetReadTimeoutEx(50, 1)
 
 	return nil
 }
@@ -106,7 +106,7 @@ ASerial_ReadAll_Main_Loop:
 			}
 			continue ASerial_ReadAll_Main_Loop
 		} else {
-			if s == 0 {
+			if s <= 0 {
 				continue ASerial_ReadAll_Main_Loop
 			}
 
