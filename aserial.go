@@ -13,8 +13,6 @@ type aserial struct {
 	serial.Port
 	sync.WaitGroup
 	sync.Mutex
-	exit  bool
-	group chan []byte
 }
 
 const (
@@ -24,8 +22,6 @@ const (
 )
 
 func (my *aserial) init(ucan *UsbCanA) *aserial {
-	my.exit = false
-	my.group = make(chan []byte, 1024)
 	my.UsbCanA = ucan
 	return my
 }
@@ -53,8 +49,6 @@ func (my *aserial) open(port string) error {
 func (my *aserial) close(out chan []byte) {
 	out <- []byte("exit")
 	my.Port.Close()
-	my.exit = true
-
 }
 
 func (my *aserial) WaitClose() {
@@ -63,10 +57,7 @@ func (my *aserial) WaitClose() {
 
 func (my *aserial) startRead(in chan canframe.Frame, out <-chan []byte) {
 	my.WaitGroup.Add(1)
-	go my.groupParse(in)
-
-	my.WaitGroup.Add(1)
-	go my.readAll()
+	go my.readAll(in)
 
 	my.WaitGroup.Add(1)
 	go my.writeFrame(out)
@@ -92,52 +83,8 @@ func (my *aserial) writeFrame(out <-chan []byte) {
 	my.WaitGroup.Done()
 }
 
-func (my *aserial) groupParse(in chan canframe.Frame) {
+func (my *aserial) readAll(in chan canframe.Frame) {
 	var ob []byte
-
-ASerial_Group_Parse_Main_Loop:
-	for !my.exit {
-		rb := <-my.group
-		ob = append(ob, rb...)
-		for i := 0; i < len(ob); {
-
-			if ob[i] == FRAME_HEAD {
-				ob = ob[i:]
-				if 2 < len(ob) {
-
-					fl := my.UsbCanA.frameLen(ob)
-					if len(ob) >= fl {
-						if ob[fl-1] == FRAME_TAIL {
-							frame := my.UsbCanA.Unmarshal(ob[:fl])
-							select {
-							case in <- *frame:
-							default:
-								println("in queue is full.")
-							}
-							ob = ob[fl:]
-							i = 0
-						} else {
-							// 不是有效的帧头，抛弃。
-							ob = ob[i+1:]
-							i = 0
-							continue
-						}
-					} else {
-						continue ASerial_Group_Parse_Main_Loop
-					}
-
-				} else {
-					continue ASerial_Group_Parse_Main_Loop
-				}
-			} else {
-				i++
-			}
-		}
-	}
-	my.WaitGroup.Done()
-}
-
-func (my *aserial) readAll() {
 	noexit := true
 
 	rb := make([]byte, 4096)
@@ -163,10 +110,40 @@ ASerial_ReadAll_Main_Loop:
 				continue ASerial_ReadAll_Main_Loop
 			}
 
-			select {
-			case my.group <- rb[:s]:
-			default:
-				println("group queue is full.")
+			ob = append(ob, rb[:s]...)
+			for i := 0; i < len(ob); {
+
+				if ob[i] == FRAME_HEAD {
+					ob = ob[i:]
+					if 2 < len(ob) {
+
+						fl := my.UsbCanA.frameLen(ob)
+						if len(ob) >= fl {
+							if ob[fl-1] == FRAME_TAIL {
+								frame := my.UsbCanA.Unmarshal(ob[:fl])
+								select {
+								case in <- *frame:
+								default:
+									println("in queue is full.")
+								}
+								ob = ob[fl:]
+								i = 0
+							} else {
+								// 不是有效的帧头，抛弃。
+								ob = ob[i+1:]
+								i = 0
+								continue
+							}
+						} else {
+							continue ASerial_ReadAll_Main_Loop
+						}
+
+					} else {
+						continue ASerial_ReadAll_Main_Loop
+					}
+				} else {
+					i++
+				}
 			}
 		}
 	}
