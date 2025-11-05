@@ -3,6 +3,7 @@ package wsucana
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	serial "github.com/albenik/go-serial"
 	"github.com/lion187chen/socketcan-go/canframe"
@@ -63,10 +64,10 @@ func (my *aserial) startRead(in chan canframe.Frame, out <-chan []byte) {
 	go my.writeFrame(out)
 }
 
-func (my *aserial) writeRaw(data []byte) {
+func (my *aserial) writeRaw(data []byte) (int, error) {
 	my.Mutex.Lock()
 	defer my.Mutex.Unlock()
-	my.Port.Write(data)
+	return my.Port.Write(data)
 }
 
 func (my *aserial) writeFrame(out <-chan []byte) {
@@ -75,7 +76,18 @@ func (my *aserial) writeFrame(out <-chan []byte) {
 		event := <-out
 		switch event[0] {
 		case FRAME_HEAD:
-			my.writeRaw(event)
+			for i := 10; i > 0; i-- {
+				n, _ := my.writeRaw(event)
+				// 如果写出不完整则续写，最多重试 10 次。
+				if n < len(event) {
+					event = event[n:]
+				} else {
+					break
+				}
+				time.Sleep(1 * time.Millisecond)
+			}
+			// 分组写入间隔 2ms。
+			time.Sleep(2 * time.Millisecond)
 		default:
 			noexit = false
 		}
