@@ -123,7 +123,7 @@ ASerial_ReadAll_Main_Loop:
 			}
 
 			ob = append(ob, rb[:s]...)
-			for i := 0; i < len(ob); i++ {
+			for i := 0; i < len(ob); {
 				if ob[i] == FRAME_HEAD {
 					if len(ob) < 2 {
 						// 长度不够则续读。
@@ -145,6 +145,8 @@ ASerial_ReadAll_Main_Loop:
 							println("in queue is full.")
 						}
 						i += fl
+					} else {
+						i++
 					}
 				}
 			}
