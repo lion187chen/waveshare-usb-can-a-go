@@ -125,7 +125,7 @@ ASerial_ReadAll_Main_Loop:
 			ob = append(ob, rb[:s]...)
 			for i := 0; i < len(ob); i++ {
 				if ob[i] == FRAME_HEAD {
-					if len(ob) < 2 {
+					if len(ob) < (i + 2) {
 						// 长度不够则续读。
 						ob = ob[i:]
 						continue ASerial_ReadAll_Main_Loop
