@@ -144,7 +144,7 @@ ASerial_ReadAll_Main_Loop:
 						default:
 							println("in queue is full.")
 						}
-						ob = ob[i+fl:]
+						i += fl
 					}
 				}
 			}
