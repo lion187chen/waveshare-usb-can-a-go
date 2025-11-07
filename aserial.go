@@ -131,7 +131,7 @@ ASerial_ReadAll_Main_Loop:
 						continue ASerial_ReadAll_Main_Loop
 					}
 					fl := my.UsbCanA.frameLen(ob[i:])
-					if len(ob) < i+fl {
+					if len(ob) < (i + fl) {
 						// 长度不够则续读。
 						ob = ob[i:]
 						continue ASerial_ReadAll_Main_Loop
