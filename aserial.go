@@ -123,40 +123,33 @@ ASerial_ReadAll_Main_Loop:
 			}
 
 			ob = append(ob, rb[:s]...)
-			for i := 0; i < len(ob); {
-
+			for i := 0; i < len(ob); i++ {
 				if ob[i] == FRAME_HEAD {
-					ob = ob[i:]
-					if 2 < len(ob) {
-
-						fl := my.UsbCanA.frameLen(ob)
-						if len(ob) >= fl {
-							if ob[fl-1] == FRAME_TAIL {
-								frame := my.UsbCanA.Unmarshal(ob[:fl])
-								select {
-								case in <- *frame:
-								default:
-									println("in queue is full.")
-								}
-								ob = ob[fl:]
-								i = 0
-							} else {
-								// 不是有效的帧头，抛弃。
-								ob = ob[i+1:]
-								i = 0
-								continue
-							}
-						} else {
-							continue ASerial_ReadAll_Main_Loop
-						}
-
-					} else {
+					if len(ob) < 2 {
+						// 长度不够则续读。
+						ob = ob[i:]
 						continue ASerial_ReadAll_Main_Loop
 					}
-				} else {
-					i++
+					fl := my.UsbCanA.frameLen(ob[i:])
+					if len(ob) < fl {
+						// 长度不够则续读。
+						ob = ob[i:]
+						continue ASerial_ReadAll_Main_Loop
+					}
+
+					if ob[i+fl-1] == FRAME_TAIL {
+						frame := my.UsbCanA.Unmarshal(ob[i : i+fl])
+						select {
+						case in <- *frame:
+						default:
+							println("in queue is full.")
+						}
+						ob = ob[i+fl:]
+					}
 				}
 			}
+			// 能执行到这里，说明 ob 中的有效报文已经处理完，剩余的每个字节都匹配了，但是没有找到有效的报文/报文起始部分，可以清除 ob 中剩余的全部内容。
+			ob = nil
 		}
 	}
 
