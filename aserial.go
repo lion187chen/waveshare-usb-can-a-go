@@ -123,7 +123,7 @@ ASerial_ReadAll_Main_Loop:
 			}
 
 			ob = append(ob, rb[:s]...)
-			for i := 0; i < len(ob); {
+			for i := 0; i < len(ob); i++ {
 				if ob[i] == FRAME_HEAD {
 					if len(ob) < 2 {
 						// 长度不够则续读。
@@ -144,9 +144,7 @@ ASerial_ReadAll_Main_Loop:
 						default:
 							println("in queue is full.")
 						}
-						i += fl
-					} else {
-						i++
+						i += fl - 1 // for 循环本身会增加 i 的值，所以这里需要减去 1，虽然会浪费 CPU 计算时间，但程序结构更好，逻辑更情绪，不容易漏加导致死循环。
 					}
 				}
 			}
