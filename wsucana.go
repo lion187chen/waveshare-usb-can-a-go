@@ -67,15 +67,15 @@ const (
 )
 
 func (my *UsbCanA) Open(port string, channelSize int) error {
+	my.in = make(chan canframe.Frame, channelSize)
+	my.out = make(chan []byte, channelSize)
 	my.aserial = new(aserial).init(my)
 	e := my.aserial.open(port)
 	if e != nil {
 		my.aserial = nil
 		return e
 	}
-	my.in = make(chan canframe.Frame, channelSize)
-	my.out = make(chan []byte, channelSize)
-	my.aserial.startRead(my.in, my.out)
+	my.aserial.startTransmit()
 	return nil
 }
 

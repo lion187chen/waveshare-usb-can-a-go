@@ -6,14 +6,13 @@ import (
 	"time"
 
 	serial "github.com/albenik/go-serial"
-	"github.com/lion187chen/socketcan-go/canframe"
 )
 
 type aserial struct {
 	*UsbCanA
 	serial.Port
 	sync.WaitGroup
-	sync.Mutex
+	// sync.Mutex
 }
 
 const (
@@ -42,7 +41,7 @@ func (my *aserial) open(port string) error {
 		return e
 	}
 	// Blocking mode.
-	my.Port.SetReadTimeoutEx(50, 1)
+	my.Port.SetReadTimeoutEx(20, 1)
 
 	return nil
 }
@@ -56,24 +55,48 @@ func (my *aserial) WaitClose() {
 	my.WaitGroup.Wait()
 }
 
-func (my *aserial) startRead(in chan canframe.Frame, out <-chan []byte) {
+func (my *aserial) startTransmit() {
 	my.WaitGroup.Add(1)
-	go my.readAll(in)
+	go my.transmit()
 
-	my.WaitGroup.Add(1)
-	go my.writeFrame(out)
+	// my.WaitGroup.Add(1)
+	// go my.writeFrame(out)
 }
 
 func (my *aserial) writeRaw(data []byte) (int, error) {
-	my.Mutex.Lock()
-	defer my.Mutex.Unlock()
+	// my.Mutex.Lock()
+	// defer my.Mutex.Unlock()
 	return my.Port.Write(data)
 }
 
-func (my *aserial) writeFrame(out <-chan []byte) {
-	noexit := true
-	for noexit {
-		event := <-out
+// func (my *aserial) writeFrame(out <-chan []byte) {
+// 	noexit := true
+// 	for noexit {
+// 		event := <-out
+// 		switch event[0] {
+// 		case FRAME_HEAD:
+// 			for i := 10; i > 0; i-- {
+// 				n, _ := my.writeRaw(event)
+// 				// 如果写出不完整则续写，最多重试 10 次。
+// 				if n < len(event) {
+// 					event = event[n:]
+// 				} else {
+// 					break
+// 				}
+// 				time.Sleep(1 * time.Millisecond)
+// 			}
+// 			// 分组写入间隔 2ms。
+// 			time.Sleep(2 * time.Millisecond)
+// 		default:
+// 			noexit = false
+// 		}
+// 	}
+// 	my.WaitGroup.Done()
+// }
+
+func (my *aserial) writeFrame() {
+	select {
+	case event := <-my.out:
 		switch event[0] {
 		case FRAME_HEAD:
 			for i := 10; i > 0; i-- {
@@ -89,13 +112,14 @@ func (my *aserial) writeFrame(out <-chan []byte) {
 			// 分组写入间隔 2ms。
 			time.Sleep(2 * time.Millisecond)
 		default:
-			noexit = false
+			// 其他事件直接忽略。
 		}
+	default:
+		// 实现非阻塞式查询读取通道
 	}
-	my.WaitGroup.Done()
 }
 
-func (my *aserial) readAll(in chan canframe.Frame) {
+func (my *aserial) transmit() {
 	var ob []byte
 	noexit := true
 
@@ -119,6 +143,7 @@ ASerial_ReadAll_Main_Loop:
 			continue ASerial_ReadAll_Main_Loop
 		} else {
 			if s <= 0 {
+				my.writeFrame()
 				continue ASerial_ReadAll_Main_Loop
 			}
 
@@ -140,7 +165,7 @@ ASerial_ReadAll_Main_Loop:
 					if ob[i+fl-1] == FRAME_TAIL {
 						frame := my.UsbCanA.Unmarshal(ob[i : i+fl])
 						select {
-						case in <- *frame:
+						case my.in <- *frame:
 						default:
 							println("in queue is full.")
 						}
